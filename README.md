@@ -1,5 +1,7 @@
 # Two-Node BCM Control System
 
+[![CI](https://github.com/satyanar-lab/Two-Node-BCM-Control-System/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/satyanar-lab/Two-Node-BCM-Control-System/actions/workflows/ci.yml)
+
 An embedded C project demonstrating a two-node Body Control Module (BCM) system
 communicating over CAN FD. One node reads physical switches and acts as the
 bus master; the other drives lighting outputs based on received commands.
