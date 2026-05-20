@@ -47,9 +47,10 @@ Lighting output LEDs (HEAD, PARK, LEFT, RIGHT, HAZARD, HB_LED) are mapped via
 - **Heartbeat supervision** — BCM increments a counter in every 100 ms command
   frame; Lighting Node detects a fresh counter value and resets a 350 ms
   watchdog. Timeout triggers fail-safe mode automatically.
-- **XOR checksum** — bytes [0..14] of every 16-byte CAN FD frame are XOR-ed;
-  result placed at byte [15]. Receiver rejects frames where the computed
-  checksum does not match the received byte.
+- **CRC-8/SAE-J1850 frame integrity** — bytes [0..14] of every 16-byte CAN FD
+  frame are protected by CRC-8/SAE-J1850 (polynomial 0x1D, init 0xFF, final
+  XOR 0xFF). The CRC byte is placed at byte [15]; receivers reject any frame
+  whose computed CRC does not match the received byte.
 - **Lamp command arbitration** — hazard overrides individual indicators; left
   and right indicators are mutually exclusive; all are encoded as bit-flags in
   a single `command_bits` byte.
