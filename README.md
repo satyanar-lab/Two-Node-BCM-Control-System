@@ -138,7 +138,7 @@ Two-Node-BCM-Control-System/
 ### Running host-side unit tests
 
 ```bash
-cd Two-Node-BCM-Control-System/tests
+cd tests
 gcc -I./stubs \
     -I../bcm_master/Core/Inc \
     -I../lighting_node/Core/Inc \
