@@ -11,7 +11,7 @@ jobs:
     name: Host unit tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build and run tests
         working-directory: tests
         run: |
@@ -35,7 +35,7 @@ jobs:
       ASAN_OPTIONS: detect_leaks=1:halt_on_error=1:abort_on_error=1
       UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1:print_stacktrace=1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build with sanitizers and run
         working-directory: tests
         run: |
@@ -58,7 +58,7 @@ jobs:
     name: Static analysis (cppcheck)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install cppcheck
         run: sudo apt-get update && sudo apt-get install -y cppcheck
       - name: Run cppcheck on application sources
@@ -76,7 +76,7 @@ jobs:
     name: Firmware cross-compile (arm-none-eabi-gcc)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install ARM GCC toolchain
         run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi
       - name: Build bcm_master
@@ -90,7 +90,7 @@ jobs:
           arm-none-eabi-size bcm_master/build/bcm_master.elf
           arm-none-eabi-size lighting_node/build/lighting_node.elf
       - name: Upload firmware artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: firmware-images
           path: |
