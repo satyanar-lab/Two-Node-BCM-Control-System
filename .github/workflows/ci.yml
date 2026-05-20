@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  host-tests:
+    name: Host unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run tests
+        working-directory: tests
+        run: |
+          gcc -Wall -Wextra -I./stubs \
+              -I../bcm_master/Core/Inc \
+              -I../lighting_node/Core/Inc \
+              test_runner.c \
+              test_heartbeat_timeout.c \
+              test_checksum_validation.c \
+              test_lamp_arbitration.c \
+              ../bcm_master/Core/Src/com_lighting_if.c \
+              ../bcm_master/Core/Src/io_bcm_inputs.c \
+              ../lighting_node/Core/Src/io_lighting_outputs.c \
+              -o run_tests
+          ./run_tests
+
+  host-tests-sanitizers:
+    name: Host tests (ASan + UBSan)
+    runs-on: ubuntu-latest
+    env:
+      ASAN_OPTIONS: detect_leaks=1:halt_on_error=1:abort_on_error=1
+      UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1:print_stacktrace=1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build with sanitizers and run
+        working-directory: tests
+        run: |
+          gcc -Wall -Wextra -g -O1 \
+              -fsanitize=address,undefined -fno-omit-frame-pointer \
+              -I./stubs \
+              -I../bcm_master/Core/Inc \
+              -I../lighting_node/Core/Inc \
+              test_runner.c \
+              test_heartbeat_timeout.c \
+              test_checksum_validation.c \
+              test_lamp_arbitration.c \
+              ../bcm_master/Core/Src/com_lighting_if.c \
+              ../bcm_master/Core/Src/io_bcm_inputs.c \
+              ../lighting_node/Core/Src/io_lighting_outputs.c \
+              -o run_tests_san
+          ./run_tests_san
+
+  cppcheck:
+    name: Static analysis (cppcheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
+      - name: Run cppcheck on application sources
+        run: |
+          cppcheck \
+            --enable=warning,performance,portability \
+            --inline-suppr \
+            --suppress=missingInclude \
+            --error-exitcode=2 \
+            --quiet \
+            bcm_master/Core/Src \
+            lighting_node/Core/Src
+
+  firmware-build:
+    name: Firmware cross-compile (arm-none-eabi-gcc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ARM GCC toolchain
+        run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi
+      - name: Build bcm_master
+        working-directory: bcm_master
+        run: make -j$(nproc)
+      - name: Build lighting_node
+        working-directory: lighting_node
+        run: make -j$(nproc)
+      - name: Show firmware sizes
+        run: |
+          arm-none-eabi-size bcm_master/build/bcm_master.elf
+          arm-none-eabi-size lighting_node/build/lighting_node.elf
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-images
+          path: |
+            bcm_master/build/bcm_master.elf
+            bcm_master/build/bcm_master.hex
+            bcm_master/build/bcm_master.bin
+            lighting_node/build/lighting_node.elf
+            lighting_node/build/lighting_node.hex
+            lighting_node/build/lighting_node.bin
+          if-no-files-found: error
